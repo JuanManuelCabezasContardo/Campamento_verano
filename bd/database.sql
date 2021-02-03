@@ -27,3 +27,11 @@ create table horario(
     CONSTRAINT FK_asistente foreign key (id_asistente) references asistentes(id),
     CONSTRAINT FK_clase foreign key (id_clase) references clase(id)
 ); -- relacion triple (asistente - modulo - clase)
+
+
+ALTER TABLE `horario` DROP FOREIGN KEY `FK_asistente`;
+ALTER TABLE `horario` ADD CONSTRAINT `FK_asistente` FOREIGN KEY (`id_asistente`) REFERENCES `asistentes`(`id`) ON DELETE CASCADE ON UPDATE RESTRICT;
+ALTER TABLE `horario` DROP FOREIGN KEY `FK_clase`;
+ALTER TABLE `horario` ADD CONSTRAINT `FK_clase` FOREIGN KEY (`id_clase`) REFERENCES `clase`(`id`) ON DELETE CASCADE ON UPDATE RESTRICT;
+ALTER TABLE `horario` DROP FOREIGN KEY `FK_modulo`;
+ALTER TABLE `horario` ADD CONSTRAINT `FK_modulo` FOREIGN KEY (`id_modulo`) REFERENCES `modulo`(`id`) ON DELETE CASCADE ON UPDATE RESTRICT;

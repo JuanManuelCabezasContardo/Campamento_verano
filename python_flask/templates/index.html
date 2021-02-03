@@ -22,56 +22,157 @@
 
             <div>
                 <div class="card bg-light mb-3" >
-                    <div class="card-header">Descripci&oacute;n</div>
+                    <div class="card-header">Descripci&oacute;n
+						{% if msn == "none" %}
+							:V
+						{% else %}
+						<div class="alert alert-success" role="alert">{{msn}}</div>
+						{% endif %}
+					</div>
                     <div class="card-body">
-                      <h5 class="card-title">Esto es un sistema de horario</h5>
-                      <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">
-                        Agregar En el horario
-                      </button>
+						<form action="/insert_horario" method="POST">
+							<div class="form-group">
+							  <label for="exampleInputEmail1">Asistente</label>
+							  <select class="form-select" aria-label="Default select example" name="asistente">
+								<option value ="NO" selected>Elige un asistente que no este en el la hora que quiera</option>
+								{% for asistente in asistentes %}
+									<option value="{{asistente.0}}">{{asistente.1}}</option>
+								{% endfor %}
+							  </select>
+							</div>
+							<div class="form-group">
+								<label for="exampleInputEmail1">Clase</label>
+								<select class="form-select" aria-label="Default select example" name="clase">
+								  <option value ="NO" selected>Elige que clases quieres que te </option>
+								  {% for curso in cursos %}
+									  <option value="{{curso.0}}">{{curso.1}}</option>
+								  {% endfor %}
+								</select>
+							  </div>
+							<div class="form-group">
+							  <label for="exampleInputEmail1">Modulo</label>
+							  <select class="form-select" aria-label="Default select example" name="modulo">
+								<option value ="NO" selected>Elige un modulo del dia que no este ocupado</option>
+								{% for modulo in modulos %}
+									<option value="{{modulo.0}}">{{modulo.1}} -{{modulo.2}}</option>
+								{% endfor %}
+							  </select>
+							</div>
+							<div class="form-group">
+							<label for="exampleInputEmail1">Dia</label>
+							  <select class="form-select" aria-label="Default select example" name="dia">
+								<option value ="NO" selected>Elige un dia de la semana que no este ocupado</option>
+								{% for dia in semana %}
+									<option value="{{dia}}">{{dia}}</option>
+								{% endfor %}
+							  </select>
+							</div>
+							<div class="form-group" style="text-align: right;">
+								<button type="submit" class="btn btn-primary">Submit</button>
+							</div>
+						  </form>
                     </div>
-                  </div>
-            </div>
+                </div>
+			</div>
+			
             <table class="table table-striped">
                 <thead>
                   <tr>
-                    <th scope="col">#</th>
+                    <th scope="col">MODULO</th>
                     <th scope="col">Lunes</th>
                     <th scope="col">Martes</th>
                     <th scope="col">Miercoles</th>
                     <th scope="col">Jueves</th>
                     <th scope="col">Viernes</th>
-                    <th scope="col">Sabado</th>
+					<th scope="col">Sabado</th>
                   </tr>
                 </thead>
                 <tbody>
+                  {% for modulo in modulos %}
                   <tr>
-                    <td scope="row">1</td>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
+                    <td>{{modulo.1}} - {{modulo.2}}</td>
+					<td>
+					{%for hora in horario %}
+					
+						{% if ("Lunes" == hora.3) and (modulo.0 == hora.0)  %}
+						<form action="/delete_horario" method="POST">
+							<input type="hidden" value="{{hora.0}}" name="modulo">
+							<input type="hidden" value="{{hora.1}}" name="asistente">
+							<input type="hidden" value="{{hora.2}}" name="clase">
+							<input type="hidden" value="{{hora.3}}" name="Dia">
+							<div class="btn btn-primary">Asistente {{hora.1}} - clase {{hora.2}}<button type="submit" class="btn btn-danger" >X</button></div>
+							</form>
+						{% endif %}
+					
+					{% endfor %}
+					</td>
+					<td>{%for hora in horario %}
+					
+						{% if ("Martes" == hora.3) and (modulo.0 == hora.0)  %}
+						<form action="/delete_horario" method="POST">
+							<input type="hidden" value="{{hora.0}}" name="modulo">
+							<input type="hidden" value="{{hora.1}}" name="asistente">
+							<input type="hidden" value="{{hora.2}}" name="clase">
+							<input type="hidden" value="{{hora.3}}" name="Dia">
+							<div class="btn btn-primary">Asistente {{hora.1}} - clase {{hora.2}}<button class="btn btn-danger">X</button></div>
+							</form>
+						{% endif %}
+					{% endfor %}</td>
+					
+					<td>{%for hora in horario %}
+					
+						{% if ("Miercoles" == hora.3) and (modulo.0 == hora.0)  %}
+						<form action="/delete_horario" method="POST">
+							<input type="hidden" value="{{hora.0}}" name="modulo">
+							<input type="hidden" value="{{hora.1}}" name="asistente">
+							<input type="hidden" value="{{hora.2}}" name="clase">
+							<input type="hidden" value="{{hora.3}}" name="Dia">
+							<div class="btn btn-primary">Asistente {{hora.1}} - clase {{hora.2}}<button class="btn btn-danger">X</button></div>
+							</form>
+						{% endif %}
+					{% endfor %}</td>
+					
+					<td>{%for hora in horario %}
+					
+						{% if ("Jueves" == hora.3) and (modulo.0 == hora.0)  %}
+						<form action="/delete_horario" method="POST">
+							<input type="hidden" value="{{hora.0}}" name="modulo">
+							<input type="hidden" value="{{hora.1}}" name="asistente">
+							<input type="hidden" value="{{hora.2}}" name="clase">
+							<input type="hidden" value="{{hora.3}}" name="Dia">
+							<div class="btn btn-primary">Asistente {{hora.1}} - clase {{hora.2}}<button class="btn btn-danger">X</button></div>
+							</form>
+						{% endif %}
+					{% endfor %}</td>
+					
+					<td>{%for hora in horario %}
+					
+						{% if ("Viernes" == hora.3) and (modulo.0 == hora.0)  %}
+						<form action="/delete_horario" method="POST">
+							<input type="hidden" value="{{hora.0}}" name="modulo">
+							<input type="hidden" value="{{hora.1}}" name="asistente">
+							<input type="hidden" value="{{hora.2}}" name="clase">
+							<input type="hidden" value="{{hora.3}}" name="Dia">
+							<div class="btn btn-primary">Asistente {{hora.1}} - clase {{hora.2}}<button class="btn btn-danger">X</button></div>
+							</form>
+						{% endif %}
+					{% endfor %}</td>
+					
+					<td>{%for hora in horario %}
+						
+						{% if ("Sabado" == hora.3) and (modulo.0 == hora.0)  %}
+						<form action="/delete_horario" method="POST">
+						<input type="hidden" value="{{hora.0}}" name="modulo">
+						<input type="hidden" value="{{hora.1}}" name="asistente">
+						<input type="hidden" value="{{hora.2}}" name="clase">
+						<input type="hidden" value="{{hora.3}}" name="Dia">
+						<div class="btn btn-primary">Asistente {{hora.1}} - clase {{hora.2}}<btn class="btn btn-danger">X</btn></div>
+						</form>
+						{% endif %}
+					{% endfor %}</td>
+					
                   </tr>
-                  <tr>
-                    <td scope="row">2</td>
-                    <td>Jacob</td>
-                    <td>Thornton</td>
-                    <td>@fat</td>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                  </tr>
-                  <tr>
-                    <td scope="row">3</td>
-                    <td>Larry</td>
-                    <td>the Bird</td>
-                    <td>@twitter</td>
-                    <td>Mark</td>
-                    <td>Otto</td>
-                    <td>@mdo</td>
-                  </tr>
+                  {% endfor %}
                 </tbody>
               </table>
         </div>

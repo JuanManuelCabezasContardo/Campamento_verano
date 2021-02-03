@@ -1,5 +1,11 @@
-from flask import Flask, redirect, url_for, render_template, request
+from flask import Flask, redirect, url_for, render_template, request, session
+from markupsafe import escape
 import mysql.connector
+from datetime import timedelta
+
+"""
+SESSION NO INCLUIDA
+"""
 
 mydb = mysql.connector.connect(
   host="localhost",
@@ -8,11 +14,14 @@ mydb = mysql.connector.connect(
   database="campamento_de_verano"
 )
 
+dias_de_la_semana=['Lunes','Martes','Miercoles','Jueves','Viernes','Sabado']
+
 app = Flask(__name__)
+app.secret_key = "hello"
+app.permanent_session_lifetime = timedelta(minutes=5)
+@app.route("/")
 
-@app.route("/", methods=["POST","GET"])
-
-def home():
+def index():
     cursor = mydb.cursor()
     cursor.execute("SELECT * FROM modulo")
     select_modulo = cursor.fetchall()
@@ -25,9 +34,35 @@ def home():
     cursor.execute("SELECT * FROM asistentes")
     select_asistentes = cursor.fetchall()
 
+    cursor = mydb.cursor()
+    cursor.execute("SELECT * FROM horario")
+    select_horario = cursor.fetchall()
 
-    return render_template("index.html",modulos=select_modulo,cursos=select_curso,asistentes=select_asistentes)
+    return render_template("index.html",modulos=select_modulo,cursos=select_curso,asistentes=select_asistentes,horario = select_horario ,semana=dias_de_la_semana,msn="none")
 
+
+@app.route("/<mensaje>")
+
+def home(mensaje="none"):
+    msn=(mensaje)#escape
+    cursor = mydb.cursor()
+    cursor.execute("SELECT * FROM modulo")
+    select_modulo = cursor.fetchall()
+
+    cursor = mydb.cursor()
+    cursor.execute("SELECT * FROM clase")
+    select_curso = cursor.fetchall()
+
+    cursor = mydb.cursor()
+    cursor.execute("SELECT * FROM asistentes")
+    select_asistentes = cursor.fetchall()
+
+    cursor = mydb.cursor()
+    cursor.execute("SELECT * FROM horario")
+    select_horario = cursor.fetchall()
+
+    return render_template("index.html",modulos=select_modulo,cursos=select_curso,asistentes=select_asistentes,horario = select_horario ,semana=dias_de_la_semana,msn=msn)
+        
 @app.route("/login",methods=["POST","GET"])
 
 def login():
@@ -213,6 +248,72 @@ def modificar_modulo_c():
         return redirect(url_for("modulo"))
     else:
         return redirect(url_for("modulo"))
+
+@app.route("/insert_horario",methods=["POST"])
+
+def insert_horario():
+    if(request.method == "POST"):
+        if(request.form["asistente"] == "NO") or (request.form["clase"] == "NO") or (request.form["modulo"] == "NO") or(request.form["dia"] == "NO"):
+            return redirect(url_for("home",mensaje="Alguno de los datos para su hora no fue seleccionado"))
+        else:
+            cursor = mydb.cursor()
+            select = "SELECT * FROM horario where id_modulo=%s and id_asistente=%s and id_clase=%s and Dia=%s"
+            val = (request.form["modulo"],request.form["asistente"],request.form["clase"],request.form["dia"])
+            cursor = mydb.cursor()
+            cursor.execute(select, val)
+            select_hora = cursor.fetchall()
+            if(len(select_hora)>0):
+                return redirect(url_for("home",mensaje="esta hora esta acupada"))
+            else:
+                insert= "INSERT INTO horario (id_modulo,id_asistente,id_clase,Dia ) VALUES (%s, %s,%s,%s)"
+                cursor2 = mydb.cursor()
+                cursor2.execute(insert, val)
+                mydb.commit()
+                return redirect(url_for("home",mensaje="se guardará!"))
+    else:
+        return redirect(url_for("home"))
+
+@app.route("/delete_horario",methods=["POST"])
+
+def delete_horario():
+    if (request.method == "POST"):
+        delete= "DELETE FROM horario where id_modulo=%s and  id_asistente=%s and id_clase=%s and Dia=%s"
+        val = (request.form["modulo"],request.form["asistente"],request.form["clase"],request.form["Dia"])
+        cursor = mydb.cursor()
+        cursor.execute(delete, val)
+        mydb.commit()
+        
+        return redirect(url_for("home",mensaje="esta hora fue eliminada"))#el redirect la salida
+    else:
+        return redirect(url_for("home",mensaje="esta hora no existe"))
+
+@app.route("/page_login",methods=["GET"])
+
+def page_login():
+    return render_template("login.html")
+
+@app.route("/iniciar_sesion", methods=["POST"])
+
+def iniciar_sesion():
+    cursor = mydb.cursor()
+    select = "SELECT * FROM users where id=%s and password=%s"
+    val = (request.form["id"],request.form["pass"])
+    cursor = mydb.cursor()
+    cursor.execute(select, val)
+    select_user = cursor.fetchall()
+    if(len(select_user)>0):
+        session.permanent = True
+        id =request.form["id"]
+        session["user"]= id
+        return redirect(url_for("home"))
+    else:
+        return redirect(url_for("page_login"))
+
+@app.route("/cerrar_sesion", methods=["GET"])
+
+def cerrar_sesion():
+    session.pop("user", None)
+    return redirect(url_for("page_login"))
 
 if __name__ == "__main__":
     app.run(debug=True)
